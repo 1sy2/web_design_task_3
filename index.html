@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Платформер</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1><i class="fas fa-gamepad"></i> JavaScript Платформер</h1>
+        </div>
+        
+        <div class="game-wrapper">
+            <!-- Левая колонка - управление -->
+            <div class="game-info">
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-label">Уровень:</span>
+                        <span id="level" class="stat-value">1</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Очки:</span>
+                        <span id="score" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Жизни:</span>
+                        <span id="lives" class="stat-value">3</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Монеты:</span>
+                        <span id="coins" class="stat-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="controls-info">
+                    <h3><i class="fas fa-keyboard"></i> Управление:</h3>
+                    <div class="keys">
+                        <div class="key-group">
+                            <kbd>A</kbd> <kbd>←</kbd> <span>Влево</span>
+                        </div>
+                        <div class="key-group">
+                            <kbd>D</kbd> <kbd>→</kbd> <span>Вправо</span>
+                        </div>
+                        <div class="key-group">
+                            <kbd>W</kbd> <kbd>SPACE</kbd> <span>Прыжок</span>
+                        </div>
+                        <div class="key-group">
+                            <kbd>P</kbd> <span>Пауза</span>
+                        </div>
+                        <div class="key-group">
+                            <kbd>R</kbd> <span>Рестарт</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Центральная колонка - игра -->
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="500"></canvas>
+                
+                <div class="game-controls">
+                    <button id="pauseBtn" class="btn btn-secondary">
+                        <i class="fas fa-pause"></i> <span>Пауза</span>
+                    </button>
+                    <button id="restartBtn" class="btn btn-warning">
+                        <i class="fas fa-redo"></i> <span>Рестарт</span>
+                    </button>
+                </div>
+                
+                <!-- Перемещаем инструкцию сюда, под кнопками -->
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Как играть:</h3>
+                    <ul>
+                        <li><strong>Цель:</strong> Достигните зеленого флага, чтобы пройти уровень</li>
+                        <li><strong>Собирайте монеты</strong> (жёлтые круги) для получения очков</li>
+                        <li><strong>Избегайте красных врагов</strong> - они отнимают жизнь</li>
+                        <li><strong>Синие платформы</strong> - обычные, <strong>фиолетовые</strong> - отталкивают вверх высоко, а <strong>красные</strong> чуть-чуть</li>
+                        <li>Соберите <strong>все монеты</strong> для бонусных очков</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Правая колонка теперь пустая или можно удалить -->
+            <div class="tips">
+                <h3><i class="fas fa-lightbulb"></i> Советы:</h3>
+                <ul>
+                    <li>Нажимайте <strong>R</strong> для быстрого рестарта</li>
+                    <li><strong>P</strong> ставит игру на паузу</li>
+                    <li>Попробуйте собрать все монеты на уровне!</li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Остальной код остается без изменений -->
+    <script>
+        // Уровни с улучшенным расположением платформ
+        const levels = [
+            {
+                name: "Первый уровень",
+                playerStart: { x: 100, y: 300 },
+                platforms: [
+                    { x: 0, y: 450, width: 800, height: 50 }, // Пол
+                    { x: 100, y: 350, width: 150, height: 20 },
+                    { x: 300, y: 300, width: 150, height: 20 },
+                    { x: 500, y: 250, width: 150, height: 20 },
+                    { x: 200, y: 200, width: 100, height: 20, type: 'bounce' },
+                    { x: 400, y: 150, width: 100, height: 20 },
+                    { x: 600, y: 100, width: 200, height: 20 }
+                ],
+                coins: [
+                    { x: 150, y: 310 },
+                    { x: 350, y: 260 },
+                    { x: 550, y: 210 },
+                    { x: 250, y: 160 },
+                    { x: 650, y: 60 }
+                ],
+                enemies: [
+                    { x: 350, y: 270, speed: 1.5, moveRange: 80 }
+                ],
+                goal: { x: 700, y: 50 }
+            },
+            {
+                name: "Второй уровень",
+                playerStart: { x: 50, y: 300 },
+                platforms: [
+                    { x: 0, y: 450, width: 800, height: 50 },
+                    { x: 100, y: 380, width: 120, height: 20 },
+                    { x: 280, y: 330, width: 120, height: 20 },
+                    { x: 460, y: 280, width: 120, height: 20 },
+                    { x: 300, y: 220, width: 100, height: 20, type: 'danger' },
+                    { x: 500, y: 180, width: 120, height: 20 },
+                    { x: 650, y: 130, width: 150, height: 20 }
+                ],
+                coins: [
+                    { x: 160, y: 340 },
+                    { x: 340, y: 290 },
+                    { x: 520, y: 240 },
+                    { x: 350, y: 180 },
+                    { x: 710, y: 90 }
+                ],
+                enemies: [
+                    // Поднимаем левое препятствие выше - было y: 360, стало y: 340
+                    { x: 200, y: 340, speed: 1.2, moveRange: 60 },
+                    { x: 520, y: 250, speed: 1.8, moveRange: 100 }
+                ],
+                goal: { x: 720, y: 80 }
+            }
+        ];
+    </script>
+    
+    <script src="js/Platform.js"></script>
+    <script src="js/Player.js"></script>
+    <script src="js/Collision.js"></script>
+    <script src="js/InputHandler.js"></script>
+    <script src="js/UI.js"></script>
+    <script src="js/Game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
